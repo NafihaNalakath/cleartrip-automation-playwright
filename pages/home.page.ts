@@ -28,7 +28,18 @@ export class HomePage extends BasePage {
     await this.type(this.toCityInput, city);
     await this.page.getByText('Dubai, AE - Dubai International Airport (DXB)').click();
   }
-  //async selectDate(date: string) {}
+  async selectDate() {
+  let date = new Date();
+  date.setDate(date.getDate() + 7);
+  const day = date.getDate();
+  const weekday = date.toLocaleString('default', { weekday: 'short' });
+  const month = date.toLocaleString('default', { month: 'short' });
+  const year = date.getFullYear();
+
+  const formattedDate = `${weekday} ${month} ${day} ${year}`;
+        await this.page.getByTestId('dateSelectOnward').click();
+     await this.page.getByRole("gridcell",{name: `${formattedDate}` ,exact: true}).click();}
+
   async searchFlight() {
     await this.searchButton.click();
   }
