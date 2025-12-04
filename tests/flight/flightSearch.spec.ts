@@ -1,8 +1,12 @@
 import {test,expect} from "@playwright/test";
 import { HomePage } from "../../pages/home.page";
+import { FlightResultsPage } from "../../pages/flight-results.page";
+import { TIMEOUT } from "dns";
 
-test("Search flights", async ({ page }) => {
+
+test("Search flights and check flights are avaialabe", async ({ page }) => {
   const home = new HomePage(page);
+  const flightResult = new FlightResultsPage(page);
 
   await home.gotoHomePage();
 
@@ -10,16 +14,20 @@ test("Search flights", async ({ page }) => {
   await home.selectTo("Dubai");
   await home.selectDate();
   await home.searchFlight();
+  await page.waitForLoadState('networkidle');
 
-  //assertion for flight results
-  const flightCountText = await page.locator('.sc-aXZVg.XkSZw.flex.flex-middle.my-2').textContent();
-  console.log(flightCountText);
-  const countMatch = flightCountText?.match(/\d+/); // extract first number
 
-  const count = countMatch ? parseInt(countMatch[0]) : 0;
-    console.log(count);
+   await  page.locator('//div[@class="sc-aXZVg XkSZw flex flex-middle my-2"]/child::h3').waitFor({state:'visible', timeout:3000});
+   const flightCount= await page.locator('//div[@class="sc-aXZVg XkSZw flex flex-middle my-2"]/child::h3').textContent();
 
-  expect(count).toBeGreaterThan(0);
+    const flightCountNumber = flightCount ? parseInt(flightCount.replace(/\D/g, '')) : 0;
+    
+    expect(flightCountNumber).toBeGreaterThan(0); 
 
-  await page.waitForTimeout(3000);
+
+   
+    const airlineNames = await flightResult.getAirlinesList();
+   // const expectedNames = ["IndiGo","Air Arabia", "Air India Express","SpiceJet"];
+    expect(airlineNames).toContain("IndiGo");
+
 }); 

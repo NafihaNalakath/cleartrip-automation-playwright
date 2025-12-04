@@ -31,6 +31,7 @@ export class HomePage extends BasePage {
   async selectDate() {
   let date = new Date();
   date.setDate(date.getDate() + 7);
+  //console.log("check date" + date);
   const day = date.getDate();
   const weekday = date.toLocaleString('default', { weekday: 'short' });
   const month = date.toLocaleString('default', { month: 'short' });
