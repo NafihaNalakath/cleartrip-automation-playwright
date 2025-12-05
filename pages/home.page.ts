@@ -16,6 +16,7 @@ export class HomePage extends BasePage {
     fromCityInput = 'input[placeholder="Where from?"]';
     toCityInput = 'input[placeholder="Where to?"]';
     searchButton = this.page.getByRole('button', { name: 'Search flights' });
+    
 
     //actions
     async selectFrom(city: string) {
@@ -44,4 +45,6 @@ export class HomePage extends BasePage {
   async searchFlight() {
     await this.searchButton.click();
   }
+
+  
 }

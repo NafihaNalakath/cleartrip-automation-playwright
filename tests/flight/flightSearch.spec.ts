@@ -30,4 +30,13 @@ test("Search flights and check flights are avaialabe", async ({ page }) => {
    // const expectedNames = ["IndiGo","Air Arabia", "Air India Express","SpiceJet"];
     expect(airlineNames).toContain("IndiGo");
 
+    
+await flightResult.getCheapestFlight();
+
+await flightResult.bookButton();    
 }); 
+
+// @test("Review the itinartery page", async ({ page }) => {
+//   const home = new HomePage(page);
+//   const flightResult = new FlightResultsPage(page);
+// });
