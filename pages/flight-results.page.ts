@@ -63,4 +63,6 @@ console.log(`Cheapest index: ${this.cheapestIndex}, Cheapest Price: ${airlinePri
 
         await cheapestAirlineLocator.click();
     }
+
+  
 }

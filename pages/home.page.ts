@@ -19,10 +19,10 @@ export class HomePage extends BasePage {
     
 
     //actions
-    async selectFrom(city: string) {
-        await this.type(this.fromCityInput, city);
+    async selectFrom(FromCity: string) {
+        await this.type(this.fromCityInput, FromCity);
         await this.page.getByText('Kozhikode, IN - Kozhikode').click();
-       
+       return FromCity;
     }
   async selectTo(city: string) {
     await this.page.locator('.field-1').click();
@@ -39,8 +39,13 @@ export class HomePage extends BasePage {
   const year = date.getFullYear();
 
   const formattedDate = `${weekday} ${month} ${day} ${year}`;
+  const modifiedDate = `${weekday}, ${day} ${month} ${year}`;
+
         await this.page.getByTestId('dateSelectOnward').click();
-     await this.page.getByRole("gridcell",{name: `${formattedDate}` ,exact: true}).click();}
+     await this.page.getByRole("gridcell",{name: `${formattedDate}` ,exact: true}).click();
+           return modifiedDate;
+
+    }
 
   async searchFlight() {
     await this.searchButton.click();
