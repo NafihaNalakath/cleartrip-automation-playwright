@@ -42,12 +42,16 @@ test("Search flights and check flights are avaialabe", async ({ page,context }) 
     context.waitForEvent("page"),
     flightResult.bookButton(), // clicking Book opens new tab
   ]);
-    await itineraryPage.waitForLoadState();
 
-  console.log("New tab title:", await itineraryPage.title());
+   // await itineraryPage.waitForLoadState();
+
+//  console.log("New tab title:", await itineraryPage.title());
 
   // Now create a page object for the new tab and verify details there
   const itineraryReview = new ItineraryReviewPage(itineraryPage, { flightDate,From,To,cheapestPrice });
   await itineraryReview.verifyDetails();
+  await itineraryReview.clickContinueButton();
+
+
 }); 
 
