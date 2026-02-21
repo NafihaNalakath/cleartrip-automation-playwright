@@ -28,22 +28,25 @@ export class HomePage extends BasePage {
     await this.page.locator('.field-1').click();
     await this.type(this.toCityInput, city);
     await this.page.getByText('Dubai, AE - Dubai International Airport (DXB)').click();
+    return city;
   }
   async selectDate() {
-  let date = new Date();
+  let date = new Date(); 
   date.setDate(date.getDate() + 7);
-  //console.log("check date" + date);
-  const day = date.getDate();
+ const day = date.getDate();
+
   const weekday = date.toLocaleString('default', { weekday: 'short' });
   const month = date.toLocaleString('default', { month: 'short' });
   const year = date.getFullYear();
 
-  const formattedDate = `${weekday} ${month} ${day} ${year}`;
-  const modifiedDate = `${weekday}, ${day} ${month} ${year}`;
+  const bookingDate = new RegExp(`^${weekday} ${month} 0?${day} ${year}$`);
 
-        await this.page.getByTestId('dateSelectOnward').click();
-     await this.page.getByRole("gridcell",{name: `${formattedDate}` ,exact: true}).click();
-           return modifiedDate;
+  const bookingDateInReviewPage = new RegExp(`^${weekday}, 0?${day} ${month} ${year}$`);
+        
+  await this.page.getByTestId('dateSelectOnward').click();
+  await this.page.getByLabel(bookingDate).click();
+          
+  return bookingDateInReviewPage;
 
     }
 
