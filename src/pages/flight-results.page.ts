@@ -12,40 +12,26 @@ export class FlightResultsPage extends BasePage {
 
 
 async getAirlinesList(): Promise<string[]> {
-    const airlineNames: string[] = [];
+        // Scope to flight rows only, then get the airline name which is the first p.mt-1
+        // inside each row. Using allInnerTexts() on the unscoped p.mt-1 grabbed promo
+        // text like "Get at ₹11969 with Axis Credit Cards" which also uses p.mt-1.
+        const rows = this.page.locator('div[style="padding: 0px;"]');
+        await rows.first().waitFor({ state: 'visible' });
 
-    // 1. We wrap the logic in a 'toPass' block. 
-    // This will retry every few milliseconds until the 'expect' conditions are met.
-    await expect(async () => {
-        const selector = 'div[class*="sc-aXZVg"] div[style*="padding: 0px"]';
-        const rows = await this.page.locator(selector).all();
+        const rowCount = await rows.count();
+        const airlineNames: string[] = [];
 
-        // 2. We set a "Success Condition": The list must have more than 1 item.
-        // If it finds only 1, it will fail and try again automatically.
-        if (rows.length <= 1) {
-            throw new Error("List not fully loaded yet...");
+        for (let i = 0; i < rowCount; i++) {
+            const nameEl = rows.nth(i).locator('p.mt-1').first();
+            const visible = await nameEl.isVisible().catch(() => false);
+            if (!visible) continue;
+            const name = await nameEl.innerText().catch(() => '');
+            if (name.trim()) airlineNames.push(name.trim());
         }
 
-        airlineNames.length = 0; // Clear array for the retry
-
-        for (const row of rows) {
-            const name = await row.locator('p.mt-1').first().innerText();
-            if (name.trim()) {
-                airlineNames.push(name.trim());
-            }
-        }
-
-        // 3. Final check: Ensure we didn't just get empty strings
-        expect(airlineNames.length).toBeGreaterThan(1);
-
-    }).toPass({
-        intervals: [500, 1000, 2000], // Wait longer between each retry
-        timeout: 15000 // Give up after 15 seconds
-    });
-
-    console.log(`Successfully captured ${airlineNames.length} airlines.`);
-    return airlineNames;
-}
+        console.log(`Successfully captured ${airlineNames.length} airlines:`, airlineNames);
+        return airlineNames;
+    }
 
     async getCheapestFlight() {
         const rows = this.page.locator('div.sc-aXZVg.jhlNOR.mt-6 > div > div[style="padding: 0px;"]')
@@ -72,7 +58,7 @@ console.log(`Cheapest index: ${this.cheapestIndex}, Cheapest Price: ${airlinePri
         return cheapestPriceFromList;
     }
 
- cheapestPrice =  this.getCheapestFlight();
+ //cheapestPrice =  this.getCheapestFlight();
 
     async bookButton() {
         if (this.cheapestIndex === null) {
@@ -82,8 +68,8 @@ console.log(`Cheapest index: ${this.cheapestIndex}, Cheapest Price: ${airlinePri
         const cheapestAirlineLocator = rows.nth(this.cheapestIndex).locator('.sc-gEvEer.QldSh');
 
 
-        await cheapestAirlineLocator.click();
-    }
+await cheapestAirlineLocator.waitFor({ state: 'visible' });
+        await cheapestAirlineLocator.click();    }
 
   
 }

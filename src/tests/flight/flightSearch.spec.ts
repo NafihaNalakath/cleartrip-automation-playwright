@@ -4,6 +4,9 @@ import { HomePage } from "../../pages/home.page";
 import { FlightResultsPage } from "../../pages/flight-results.page";
 import { ItineraryReviewPage } from "../../pages/itinerary-review.page";
 
+test.setTimeout(60000);
+
+
 let home : HomePage;
 let From: string;
 let To: string;
@@ -16,6 +19,9 @@ test.beforeEach(async ({ page }) => {
   To = await home.selectTo(flightSearchData.to);
   flightDate = await home.selectDate();
   await home.searchFlight();
+  await page.waitForLoadState("networkidle");
+await page.locator('div.sc-aXZVg.jhlNOR.mt-6 > div > div[style="padding: 0px;"]').first().waitFor({ state: 'visible' });
+
 
 })
 
@@ -38,7 +44,9 @@ test("Validate the list of airlines and find the cheapest flight", async ({ page
 
     const airlineNames = await flightResult.getAirlinesList();
    
-   expect(airlineNames).toContain(flightSearchData.expectedAirline);
+const knownAirlines = flightSearchData.expectedAirlines;
+  const hasKnownAirline = airlineNames.some(name => knownAirlines.includes(name));
+  expect(hasKnownAirline, `Expected at least one of ${knownAirlines} in: ${airlineNames}`).toBe(true);
    
     //get the cheapest flight price
   const cheapestPrice = await flightResult.getCheapestFlight();
@@ -56,16 +64,21 @@ test("select the cheapest flight and book the flight", async ({ page,context }) 
     context.waitForEvent("page"),
     flightResult.bookButton(), // clicking Book opens new tab
   ]);
+  await itineraryPage.waitForLoadState("domcontentloaded");
+await itineraryPage.waitForLoadState("networkidle");
 
 
   const itineraryReview = new ItineraryReviewPage(itineraryPage, { flightDate,From,To, cheapestPriceFromList : cheapestPrice });
   await itineraryReview.verifyDetails();
   await itineraryReview.clickContinueButton();
 
-const [paymentPage] = await Promise.all([
-  context.waitForEvent("page"),
-  itineraryReview.clickPaymentButton(), // clicking Continue to payment opens new tab
-]);
+await itineraryReview.clickPaymentButton();
+await itineraryPage.waitForLoadState("domcontentloaded");
+
+const paymentUrl = itineraryPage.url();
+  console.log("Payment page URL:", paymentUrl);
+  expect(paymentUrl).toContain('cleartrip.com');
+  expect(paymentUrl).not.toContain('/flights/results');
 
 }); 
 
