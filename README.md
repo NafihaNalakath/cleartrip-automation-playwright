@@ -2,6 +2,7 @@
 
 ![Playwright](https://img.shields.io/badge/Playwright-45ba4b?logo=playwright&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![CI](https://github.com/NafihaNalakath/cleartrip-automation-playwright/actions/workflows/playwright.yml/badge.svg)
 
 End-to-end automation framework for Cleartrip.com 
 flight booking workflows, built with Playwright + 
