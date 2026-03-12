@@ -1,44 +1,23 @@
-✈️ Cleartrip.com Automation Suite
+# ✈️ Cleartrip.com — Flight Booking Automation Suite
 
-A robust end-to-end UI automation framework built using Playwright and TypeScript to test major workflows on Cleartrip.com, focusing on stability, readability, and scalability.
+![Playwright](https://img.shields.io/badge/Playwright-45ba4b?logo=playwright&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-📌 Project Overview
+End-to-end automation framework for Cleartrip.com 
+flight booking workflows, built with Playwright + 
+TypeScript following Page Object Model architecture.
 
-This project automates key user journeys on Cleartrip such as searching for flights, validating available options, applying filters, and navigating booking flows.
-It follows best practices like Page Object Model (POM), test tagging, reusable components, and parallel execution.
+## 🎯 What's Automated
+- ✅ Flight search (one-way & round-trip)
+- ✅ Search results validation & filter application  
+- ✅ Fare selection and pricing verification
+- ✅ Booking flow navigation
+- ✅ Error handling & edge case scenarios
 
-🧰 Tech Stack
-
-Playwright (Test Runner)
-
-TypeScript
-
-Node.js
-
-Page Object Model (POM)
-
-🚀 Getting Started
-1. Install Dependencies
-npm install
-
-2. Run Tests
-
-Run all tests:
-
-npx playwright test
-
-
-Run in headed mode:
-
-npx playwright test --headed
-
-
-Run a specific test:
-
-npx playwright test tests/flight-search.spec.ts
-
-📊 Reporting
-
-Generate HTML report:
-
-npx playwright show-report
+## 🏗️ Framework Architecture
+- Page Object Model (POM) for maintainability
+- Reusable fixtures and utility helpers
+- Parallel test execution
+- GitHub Actions CI integration
+- HTML test reporting
+```
