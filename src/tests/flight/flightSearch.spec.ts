@@ -6,6 +6,8 @@ import { ItineraryReviewPage } from "../../pages/itinerary-review.page";
 
 test.setTimeout(60000);
 
+test.skip(!!process.env.CI, 
+  'Skipped in CI — site requires browser interaction');
 
 let home : HomePage;
 let From: string;
@@ -21,8 +23,6 @@ test.beforeEach(async ({ page }) => {
   await home.searchFlight();
   await page.waitForLoadState("networkidle");
 await page.locator('div.sc-aXZVg.jhlNOR.mt-6 > div > div[style="padding: 0px;"]').first().waitFor({ state: 'visible' });
-
-
 })
 
 test("Search flights and validate flights are avaialabe", async ({ page,context }) => {
