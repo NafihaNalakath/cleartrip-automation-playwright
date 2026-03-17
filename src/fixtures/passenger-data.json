@@ -1,0 +1,25 @@
+{
+  "contact": {
+    "phone": "8129024134",
+    "email": "nafinalakath66@gmail.com"
+  },
+  "traveller": {
+    "gender": "Female",
+    "firstName": "Nafiha",
+    "lastName": "N",
+    "dob": {
+      "day": "26",
+      "month": "Oct",
+      "year": "1997"
+    },
+    "passport": {
+      "number": "CX210908",
+      "nationality": "India",
+      "expiry": {
+        "day": "22",
+        "month": "Nov",
+        "year": "2033"
+      }
+    }
+  }
+}

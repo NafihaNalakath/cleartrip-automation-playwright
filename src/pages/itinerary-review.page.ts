@@ -43,122 +43,119 @@ export class ItineraryReviewPage extends BasePage {
 
     async clickContinueButton() {
         console.log("new tab url:" + this.page.url());
-        await this.page.screenshot({ path: 'screenshots/step0-itinerary-loaded.png' });
 
-        // STEP 1: Dismiss airport change modal if present
-        const modalContinue = this.page.locator('button').filter({ hasText: 'Continue' }).first();
-        if (await modalContinue.isVisible({ timeout: 3000 }).catch(() => false)) {
-            await modalContinue.click();
-            await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-            console.log("modal dismissed");
-            await this.page.screenshot({ path: 'screenshots/step1-modal-dismissed.png' });
-        }
-
-        // STEP 2: Click the main itinerary Continue button
+        // STEP 1: Click main itinerary Continue — regular click works here,
+        // no overlay present on the itinerary review page.
         const mainContinue = this.page.locator('button').filter({ hasText: 'Continue' }).first();
         await mainContinue.waitFor({ state: 'visible' });
         await mainContinue.click();
         await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
         console.log("main continue clicked");
-        await this.page.screenshot({ path: 'screenshots/step2-after-main-continue.png' });
 
-   // STEP 2: Insurance screen — appears conditionally, so check with short timeout
-        const noInsurance = this.page.locator('text=No, I will book without insurance');
-        if (await noInsurance.isVisible({ timeout: 4000 }).catch(() => false)) {
-            await noInsurance.click();
-            console.log("no insurance selected");
+        // STEP 2: Insurance screen — appears conditionally (not always shown).
+        // We check for "Health Declaration" with a short timeout — if it appears,
+        // we're on the insurance screen and use dispatchEvent to click Continue
+        // (regular and force clicks fail here due to overlay interception).
+        // If it doesn't appear, we skip silently and move on to add-ons.
+        const insuranceVisible = await this.page.locator('text=Health Declaration')
+            .isVisible({ timeout: 5000 }).catch(() => false);
+        if (insuranceVisible) {
             const insuranceContinue = this.page.locator('button').filter({ hasText: 'Continue' }).first();
             await insuranceContinue.waitFor({ state: 'visible' });
-            await insuranceContinue.click();
+            await insuranceContinue.dispatchEvent('click');
             await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-            console.log("insurance continue clicked");
+            console.log("insurance screen skipped");
         } else {
-            console.log("insurance screen not shown, skipping");
+            console.log("insurance screen not shown, moving to add-ons");
         }
 
-        // STEP 3: Handle Skip add-ons screen if it appears
-        const skipAddonButton = this.page.getByText('Skip add ons');
-        if (await skipAddonButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-            await skipAddonButton.click();
+        // STEP 3: Add-ons screen — click "Skip add-ons" button (with hyphen).
+        // Confirmed via DevTools: page button is <button> containing "Skip add-ons"
+        const skipAddonsBtn = this.page.locator('button').filter({ hasText: 'Skip add-ons' }).first();
+        if (await skipAddonsBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await skipAddonsBtn.click();
             await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-            console.log("skip addons clicked");
-        } else {
-            const skipContinue = this.page.locator('button').filter({ hasText: 'Continue' }).first();
-            if (await skipContinue.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await skipContinue.click();
-                await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-                console.log("skip addons continue clicked");
-            }
+            console.log("skip add-ons clicked");
         }
-        await this.page.screenshot({ path: 'screenshots/step3-after-skip-addons.png' });
 
-        // STEP 4: Fill contact details
-        // Wait for phone input — most reliable signal the contact form is ready
+        // STEP 3b: "You missed adding Meal(s) and Seat(s)" modal popup.
+        // Confirmed via DevTools: modal "Skip add ons" is a <p> tag (no hyphen)
+        // which makes p:has-text uniquely target the modal vs the page button.
+        const mealModalSkip = this.page.locator('p:has-text("Skip add ons")');
+        if (await mealModalSkip.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await mealModalSkip.click();
+            await mealModalSkip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+            await this.page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+            console.log("meal modal dismissed");
+        }
+
+        await this.page.screenshot({ path: 'screenshots/step3c-before-contact-form.png' });
+
+        // STEP 4: Fill contact details — phone and email on the same form.
         const phoneInput = this.page.locator('input[type="text"]').first();
         await phoneInput.waitFor({ state: 'visible' });
-        await this.page.screenshot({ path: 'screenshots/step4-contact-form-visible.png' });
         await phoneInput.click();
-        await phoneInput.fill('8129024134');
+        await phoneInput.fill(this.expected.passenger.contact.phone);
         await phoneInput.press('Tab');
         console.log("phoneInput filled");
 
-        // Email input — use 'attached' + force since the field may be obscured by its label
+        // Email is input[type="email"] confirmed via DevTools
         const emailInput = this.page.locator('input[type="email"]');
         await emailInput.waitFor({ state: 'attached', timeout: 10000 });
-        await emailInput.fill('nafinalakath66@gmail.com', { force: true });
+        await emailInput.fill(this.expected.passenger.contact.email, { force: true });
         console.log("emailInput filled");
-        await this.page.screenshot({ path: 'screenshots/step4-contact-form-filled.png' });
 
-        // STEP 5: Click the contact form's Continue button
+        // STEP 5: Click contact form Continue
         const contactContinueButton = this.page.locator('button').filter({ hasText: 'Continue' }).first();
         await contactContinueButton.waitFor({ state: 'visible' });
         await contactContinueButton.click();
         console.log("contactContinueButton clicked");
 
-        
-        // FIX 6: Wait for passenger details section to appear before interacting
-        const femaleOption = this.page.locator('p:has-text("Female")');
-        await femaleOption.waitFor({ state: 'visible' });
-        await femaleOption.click();
+        // STEP 6: Fill traveller details
+        const genderOption = this.page.locator(`p:has-text("${this.expected.passenger.traveller.gender}")`);
+        await genderOption.waitFor({ state: 'visible' });
+        await genderOption.click();
 
         await this.page.getByRole('textbox').nth(2).click();
-        await this.page.getByRole('textbox').nth(2).fill('Nafiha');
+        await this.page.getByRole('textbox').nth(2).fill(this.expected.passenger.traveller.firstName);
         await this.page.getByRole('textbox').nth(3).click();
-        await this.page.getByRole('textbox').nth(3).fill('N');
+        await this.page.getByRole('textbox').nth(3).fill(this.expected.passenger.traveller.lastName);
 
         await this.page.screenshot({ path: 'screenshots/passenger-details-filled.png' });
 
+        // DOB — conditional, some fare types don't require it
         const comboboxDOB = this.page.locator('p:has-text("Date of birth")');
         if (await comboboxDOB.isVisible()) {
-            await this.page.getByRole('combobox').first().selectOption('26');
-            await this.page.getByRole('combobox').nth(1).selectOption('Oct');
-            await this.page.getByRole('combobox').nth(2).selectOption('1997');
+            const dob = this.expected.passenger.traveller.dob;
+            await this.page.getByRole('combobox').first().selectOption(dob.day);
+            await this.page.getByRole('combobox').nth(1).selectOption(dob.month);
+            await this.page.getByRole('combobox').nth(2).selectOption(dob.year);
         } else {
-            console.log("DOB combobox not visible, skipping DOB selection.");
+            console.log("DOB combobox not visible, skipping.");
         }
 
-        // FIX: locator('div').filter({ hasText: ... }) matches every ancestor div too,
-        // causing a strict mode violation (11 elements). Use a specific label/heading
-        // locator scoped tightly, then check count() instead of isVisible().
-        const passportInput = this.page.locator('label, p, span').filter({ hasText: /^Passport Number and Nationality$/ }).first();
-        if (await passportInput.count() > 0 && await passportInput.isVisible().catch(() => false)) {
+        // Passport — conditional, only for international flights
+        const passportLabel = this.page.locator('label, p, span')
+            .filter({ hasText: /^Passport Number and Nationality$/ }).first();
+        if (await passportLabel.count() > 0 && await passportLabel.isVisible().catch(() => false)) {
+            const passport = this.expected.passenger.traveller.passport;
+            const nationalityRegex = new RegExp(`^${passport.nationality}$`);
             await this.page.getByRole('textbox').nth(4).click();
-            await this.page.getByRole('textbox').nth(4).fill('CX210908');
+            await this.page.getByRole('textbox').nth(4).fill(passport.number);
             await this.page.getByRole('textbox').nth(5).click();
-            await this.page.locator('div').filter({ hasText: /^India$/ }).first().click();
+            await this.page.locator('div').filter({ hasText: nationalityRegex }).first().click();
             await this.page.locator('input[type="text"]').nth(5).click();
-            await this.page.locator('div').filter({ hasText: /^India$/ }).first().click();
-            await this.page.getByRole('combobox').nth(3).selectOption('22');
-            await this.page.getByRole('combobox').nth(4).selectOption('Nov');
-            await this.page.getByRole('combobox').nth(5).selectOption('2033');
+            await this.page.locator('div').filter({ hasText: nationalityRegex }).first().click();
+            await this.page.getByRole('combobox').nth(3).selectOption(passport.expiry.day);
+            await this.page.getByRole('combobox').nth(4).selectOption(passport.expiry.month);
+            await this.page.getByRole('combobox').nth(5).selectOption(passport.expiry.year);
         } else {
-            console.log("Passport input fields not visible, skipping passport details.");
+            console.log("Passport input fields not visible, skipping.");
         }
     }
 
     async clickPaymentButton() {
         const paymentButton = this.page.getByRole('button', { name: 'Continue to payment' });
-        // FIX 7: Wait for payment button to be visible before clicking
         await paymentButton.waitFor({ state: 'visible' });
         await paymentButton.click();
     }

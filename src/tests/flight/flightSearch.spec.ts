@@ -1,8 +1,10 @@
 import {test,expect} from "@playwright/test";
-import { flightSearchData } from "../../fixtures/flight-data";
 import { HomePage } from "../../pages/home.page";
 import { FlightResultsPage } from "../../pages/flight-results.page";
 import { ItineraryReviewPage } from "../../pages/itinerary-review.page";
+
+import flightSearchData from "../../fixtures/flight-data.json";
+import passengerData from "../../fixtures/passenger-data.json";
 
 test.setTimeout(60000);
 
@@ -68,8 +70,16 @@ test("select the cheapest flight and book the flight", async ({ page,context }) 
 await itineraryPage.waitForLoadState("networkidle");
 
 
-  const itineraryReview = new ItineraryReviewPage(itineraryPage, { flightDate,From,To, cheapestPriceFromList : cheapestPrice });
-  await itineraryReview.verifyDetails();
+ // const itineraryReview = new ItineraryReviewPage(itineraryPage, { flightDate,From,To, cheapestPriceFromList : cheapestPrice });
+  const itineraryReview = new ItineraryReviewPage(itineraryPage, { 
+    flightDate, 
+    From, 
+    To, 
+    cheapestPriceFromList: cheapestPrice,
+    passenger: passengerData   // pass passenger data from JSON
+  }); 
+  
+ await itineraryReview.verifyDetails();
   await itineraryReview.clickContinueButton();
 
 await itineraryReview.clickPaymentButton();
